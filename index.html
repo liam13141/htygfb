@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Player Profile QR Code Tracker</title>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+
+        .profile-container {
+            display: inline-block;
+            margin: 10px;
+            text-align: center;
+        }
+
+        /* Modal styling */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.4);
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>Player Profile QR Code Tracker</h1>
+    <p>Fill in the form below to generate a player profile and QR code.</p>
+
+    <!-- Form to collect player details -->
+    <div>
+        <label for="firstName">First Name:</label>
+        <input type="text" id="firstName" placeholder="Enter your first name" required><br><br>
+        
+        <label for="lastName">Last Name:</label>
+        <input type="text" id="lastName" placeholder="Enter your last name" required><br><br>
+
+        <label for="phoneNumber">Phone Number:</label>
+        <input type="text" id="phoneNumber" placeholder="Enter your phone number" required><br><br>
+
+        <button onclick="generatePlayerProfile()">Generate Player Profile</button>
+    </div>
+
+    <h2>Player Profiles</h2>
+    <div id="profileContainer"></div>
+
+    <!-- Modal for Player Profile -->
+    <div id="profileModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <div id="modalProfileContainer"></div>
+        </div>
+    </div>
+
+    <script>
+        // Generate random 20-digit ID for the player
+        function generateRandomId() {
+            return Math.floor(10000000000000000000 + Math.random() * 90000000000000000000); // Random 20-digit number
+        }
+
+        // Generate and display player profile
+        function generatePlayerProfile() {
+            const firstName = document.getElementById('firstName').value;
+            const lastName = document.getElementById('lastName').value;
+            const phoneNumber = document.getElementById('phoneNumber').value;
+
+            // Validate input fields
+            if (!firstName || !lastName || !phoneNumber) {
+                alert('Please fill in all fields.');
+                return;
+            }
+
+            const playerId = generateRandomId(); // Generate random 20-digit player ID
+
+            // Create QR Code with player ID
+            generateQRCode(playerId, firstName, lastName, phoneNumber);
+
+            // Clear input fields after generating the profile
+            document.getElementById('firstName').value = '';
+            document.getElementById('lastName').value = '';
+            document.getElementById('phoneNumber').value = '';
+        }
+
+        // Generate the QR code with a URL that contains the playerId
+        function generateQRCode(playerId, firstName, lastName, phoneNumber) {
+            const qrCodeUrl = window.location.href.split('?')[0] + "?playerId=" + playerId;
+
+            QRCode.toDataURL(qrCodeUrl, function (error, url) {
+                if (error) {
+                    console.error(error);
+                    alert("Error generating QR code.");
+                    return;
+                }
+
+                // Create a profile container for the QR code
+                const profileContainer = document.createElement("div");
+                profileContainer.classList.add("profile-container");
+
+                // Create QR code image
+                const qrImage = document.createElement("img");
+                qrImage.src = url;
+                qrImage.alt = `QR Code for Player ID: ${playerId}`;
+                qrImage.onclick = function () {
+                    openModal(playerId, firstName, lastName, phoneNumber); // Open the profile modal when the QR code is clicked
+                };
+
+                // Create a label for the profile
+                const profileLabel = document.createElement("p");
+                profileLabel.innerHTML = `Player ID: ${playerId}`;
+
+                // Add the QR code and label to the profile container
+                profileContainer.appendChild(qrImage);
+                profileContainer.appendChild(profileLabel);
+
+                // Append the new profile container to the main profile container
+                document.getElementById("profileContainer").appendChild(profileContainer);
+            });
+        }
+
+        // Open profile in modal based on player ID from URL
+        function openModal(playerId, firstName, lastName, phoneNumber) {
+            const modalContainer = document.getElementById("modalProfileContainer");
+
+            // Create profile container
+            const profileDiv = document.createElement("div");
+            profileDiv.className = "profile-container";
+
+            // Create ID label
+            const idLabel = document.createElement("h3");
+            idLabel.textContent = `Player ID: ${playerId}`;
+
+            // Create Name labels
+            const nameLabel = document.createElement("p");
+            nameLabel.textContent = `Name: ${firstName} ${lastName}`;
+
+            // Create Phone number label
+            const phoneLabel = document.createElement("p");
+            phoneLabel.textContent = `Phone Number: ${phoneNumber}`;
+
+            // Append elements to the profileDiv
+            profileDiv.appendChild(idLabel);
+            profileDiv.appendChild(nameLabel);
+            profileDiv.appendChild(phoneLabel);
+
+            // Clear the modal container and append the new profile
+            modalContainer.innerHTML = "";
+            modalContainer.appendChild(profileDiv);
+
+            // Display the modal
+            document.getElementById("profileModal").style.display = "block";
+        }
+
+        // Close the modal
+        function closeModal() {
+            document.getElementById("profileModal").style.display = "none";
+        }
+    </script>
+</body>
+</html>
